@@ -1,7 +1,7 @@
 /*
  Simplex Noise
  
- Copyright (c) 2015, Simon Geilfus, All rights reserved.
+ Copyright (c) 2016, Simon Geilfus, All rights reserved.
  Code adapted from Stefan Gustavson Simplex Noise Public Domain implementation
  Curl noise adapted from Robert Bridson papers
  This code also includes variation of noise sums by Iñigo Quilez
