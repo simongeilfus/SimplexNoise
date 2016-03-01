@@ -24,6 +24,10 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 #include "Simplex.h"
+#include <math.h>
+#include <stdlib.h>
+#include <glm/detail/func_common.hpp>
+#include <glm/geometric.hpp>
 
 using namespace glm;
 using namespace std;
@@ -1856,7 +1860,7 @@ float Simplex::iqMatfBm( const vec2 &v, uint8_t octaves, const glm::mat2 &mat, f
 	for( int i = 0; i < octaves; i++ ){
 		vec3 n	= dnoise( pos );
 		noiseAccum	+= vec2( n.y, n.z );
-		sum			+= amp * n.x / ( 1.0 + dot( noiseAccum, noiseAccum ) );
+		sum			+= amp * n.x / ( 1.0 + glm::dot( noiseAccum, noiseAccum ) );
 		amp			*= gain;
 		pos			= mat * pos;
 	}

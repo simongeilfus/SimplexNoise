@@ -30,6 +30,7 @@
 #include "glm/vec4.hpp"
 #include "glm/mat2x2.hpp"
 #include <functional>
+#include <array>
 
 // This brings back the returned noise of the dnoise functions into -1,1 range.
 // For some reason this is not the case in Stefan Gustavson implementation
