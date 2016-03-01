@@ -7,6 +7,8 @@ Simplex Noise
 
 Simplex noise is better looking, faster and has proper derivatives without the grid artifacts of Perlin noise derivatives. This code is mostly ported from Stefan Gustavson public domain implementation for the simplex noise, simplex flow noise and their analytical derivatives. The curl noise functions are adapted from Robert Bridson papers to use derivatives instead of finite differences. There's also a series of noise sums and other multi-fractals noises...
 
+![](NoiseGallery.jpg)
+
 ```c++
 //! Returns a 1D simplex noise
 float noise( float x );
