@@ -17,12 +17,36 @@ class NoiseGalleryApp : public App {
 	NoiseGalleryApp();
 	void update() override;
 	void draw() override;
+	
 	gl::TextureFontRef mFont;
 	gl::Texture2dRef mTexture;
+	gl::BatchRef mBatch;
 };
 
 NoiseGalleryApp::NoiseGalleryApp()
 {
+	// basic shader that ouput the red channel of the texture
+	string vertShader = R"(
+		uniform mat4	ciModelViewProjection;
+		in vec4			ciPosition;
+		in vec2			ciTexCoord0;
+		out vec2		vUv;
+		void main() {
+			vUv = ciTexCoord0;
+			gl_Position = ciModelViewProjection * ciPosition;
+		}
+	)";
+	string fragShader = R"(
+		uniform sampler2D uSampler;
+		in vec2	vUv;
+		out vec4 oColor;
+		void main()	{
+			oColor = vec4( vec3( texture( uSampler, vUv ).r * 0.85f ), 1.0 ); // slightly darker to see the text
+		}
+	)";
+	
+	// create a batch and an empty texture
+	mBatch = gl::Batch::create( geom::Rect( getWindowBounds() ), gl::GlslProg::create( gl::GlslProg::Format().vertex( vertShader ).fragment( fragShader ) ) );
 	mTexture = gl::Texture2d::create( RES, RES, gl::Texture2d::Format().internalFormat( GL_RED ) );
 	mFont = gl::TextureFont::create( Font( "Arial", 10 ) );
 }
@@ -74,8 +98,12 @@ void NoiseGalleryApp::update()
 void NoiseGalleryApp::draw()
 {
 	gl::clear( Color( 0, 0, 0 ) );
-	gl::draw( mTexture );
 	
+	// render the texture
+	gl::ScopedTextureBind texBind( mTexture );
+	mBatch->draw();
+	
+	// render titles for each tile
 	static string names[16] = { "Noise", "Ridged Noise", "Flow Noise", "fBm", "fBm Variation", "Warped fBm", "dfBm Warped fBm", "fBm Warped Flow Noise", "3D Ridged Multi-Fractal", "Ridged Multi-Fractal Variation", "Warped Ridged Multi-Fractal", "Ridged Multi-Fractal Variation", "iqfBm", "iqfBm Variation", "Noise Derivatives", "Noise Warped Curl Noise" };
 	for( size_t i = 0; i < CELL_RES * CELL_RES; ++i ) {
 		vec2 offset = vec2( i % CELL_RES, ( i / CELL_RES ) % CELL_RES ) * vec2( CELL_SIZE );
