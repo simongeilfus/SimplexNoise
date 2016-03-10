@@ -5,14 +5,9 @@
 	id="sg.simplex"
 	author="Simon Geilfus"
 	summary="Simplex Noise class for Cinder"
-	>
-	<supports os="msw" />
-	<supports os="macosx" />
-	
+	git="https://github.com/simongeilfus/SimplexNoise.git"
+	>	
 	<includePath>include</includePath>
-	
 	<header>include/Simplex.h</header>
-	<source>src/Simplex.cpp</source>
-	
 </block>
 </cinder>
