@@ -38,6 +38,15 @@ glm::vec4 dnoise( const glm::vec3 &v );
 typedef std::array<float,5> vec5;
 //! Returns a 4D simplex noise with analytical derivatives
 vec5	dnoise( const glm::vec4 &v );
+	
+//! Returns a 2D simplex cellular/worley noise
+float worleyNoise( const glm::vec2 &v );
+//! Returns a 3D simplex cellular/worley noise
+float worleyNoise( const glm::vec3 &v );
+//! Returns a 2D simplex smooth cellular/worley noise
+float worleyNoise( const glm::vec2 &v, float falloff );
+//! Returns a 3D simplex smooth cellular/worley noise
+float worleyNoise( const glm::vec3 &v, float falloff );
 
 //! Returns a 2D simplex noise with rotating gradients
 float flowNoise( const glm::vec2 &v, float angle );
