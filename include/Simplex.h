@@ -76,11 +76,10 @@ vec5	dnoise( const glm::vec4 &v );
 float worleyNoise( const glm::vec2 &v );
 //! Returns a 3D simplex cellular/worley noise
 float worleyNoise( const glm::vec3 &v );
-
 //! Returns a 2D simplex smooth cellular/worley noise
-float sWorleyNoise( const glm::vec2 &v );
+float worleyNoise( const glm::vec2 &v, float falloff );
 //! Returns a 3D simplex smooth cellular/worley noise
-float sWorleyNoise( const glm::vec3 &v );
+float worleyNoise( const glm::vec3 &v, float falloff );
 
 //! Returns a 2D simplex noise with rotating gradients
 float flowNoise( const glm::vec2 &v, float angle );
@@ -127,7 +126,7 @@ glm::vec3 dfBm( const glm::vec2 &v, uint8_t octaves = 4, float lacunarity = 2.0f
 glm::vec4 dfBm( const glm::vec3 &v, uint8_t octaves = 4, float lacunarity = 2.0f, float gain = 0.5f );
 //! Returns a 4D simplex noise fractal brownian motion sum with analytical derivatives
 vec5	dfBm( const glm::vec4 &v, uint8_t octaves = 4, float lacunarity = 2.0f, float gain = 0.5f );
-
+	
 //! Returns a 1D simplex ridged multi-fractal noise sum
 float ridgedMF( float x, float ridgeOffset = 1.0f, uint8_t octaves = 4, float lacunarity = 2.0f, float gain = 0.5f );
 //! Returns a 2D simplex ridged multi-fractal noise sum
@@ -1294,39 +1293,39 @@ float worleyNoise( const glm::vec3 &v )
 	}
 	return sqrt( res );
 }
-float sWorleyNoise( const glm::vec2 &v )
+float worleyNoise( const glm::vec2 &v, float falloff )
 {
 	glm::ivec2 p = glm::floor( v );
 	glm::vec2  f = glm::fract( v );
 	
-	float res = 8.0;
+	float res = 0.0f;
 	for( int j=-1; j<=1; j++ ) {
 		for( int i=-1; i<=1; i++ ) {
 			glm::ivec2 b = glm::ivec2( i, j );
 			glm::vec2  r = glm::vec2( b ) - f + ( Simplex::noise( p + b ) * 0.5f + 0.5f );
-			float d = dot( r, r );
-			res += 1.0f/glm::pow( d, 8.0f );
+			float d = glm::length( r );
+			res += glm::exp( -falloff*d );
 		}
 	}
-	return glm::pow( 1.0f/res, 1.0/16.0f );
+	return -( 1.0f / falloff ) * glm::log( res );
 }
-float sWorleyNoise( const glm::vec3 &v )
+float worleyNoise( const glm::vec3 &v, float falloff )
 {
 	glm::vec3 p = glm::floor( v );
 	glm::vec3  f = glm::fract( v );
 	
-	float res = 8.0;
+	float res = 0.0f;
 	for( int k=-1; k<=1; k++ ) {
 		for( int j=-1; j<=1; j++ ) {
 			for( int i=-1; i<=1; i++ ) {
 				glm::vec3 b = glm::vec3( i, j, k );
 				glm::vec3 r = glm::vec3( b ) - f + ( Simplex::noise( p + b ) * 0.5f + 0.5f );
-				float d = glm::dot( r, r );
-				res += 1.0f/glm::pow( d, 8.0f );
+				float d = glm::length( r );
+				res += glm::exp( -falloff*d );
 			}
 		}
 	}
-	return glm::pow( 1.0f/res, 1.0f/16.0f );
+	return -( 1.0f / falloff ) * glm::log( res );
 }
 	
 float flowNoise( const glm::vec2 &v, float angle )
