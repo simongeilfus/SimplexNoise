@@ -71,6 +71,16 @@ glm::vec4 dnoise( const glm::vec3 &v );
 typedef std::array<float,5> vec5;
 //! Returns a 4D simplex noise with analytical derivatives
 vec5	dnoise( const glm::vec4 &v );
+	
+//! Returns a 2D simplex cellular/worley noise
+float worleyNoise( const glm::vec2 &v );
+//! Returns a 3D simplex cellular/worley noise
+float worleyNoise( const glm::vec3 &v );
+
+//! Returns a 2D simplex smooth cellular/worley noise
+float sWorleyNoise( const glm::vec2 &v );
+//! Returns a 3D simplex smooth cellular/worley noise
+float sWorleyNoise( const glm::vec3 &v );
 
 //! Returns a 2D simplex noise with rotating gradients
 float flowNoise( const glm::vec2 &v, float angle );
@@ -1248,7 +1258,77 @@ vec5 dnoise( const glm::vec4 &v )
 	
 	return { noise, dnoise_dx, dnoise_dy, dnoise_dz, dnoise_dw };
 }
-
+	
+	
+float worleyNoise( const glm::vec2 &v )
+{
+	glm::vec2 p = glm::floor( v );
+	glm::vec2  f = glm::fract( v );
+	
+	float res = 8.0;
+	for( int j=-1; j<=1; j++ ) {
+		for( int i=-1; i<=1; i++ ) {
+			glm::vec2 b = glm::vec2( i, j );
+			glm::vec2  r = glm::vec2( b ) - f + ( Simplex::noise( p + b ) * 0.5f + 0.5f );
+			float d = glm::dot( r, r );
+			res = glm::min( res, d );
+		}
+	}
+	return sqrt( res );
+}
+float worleyNoise( const glm::vec3 &v )
+{
+	glm::vec3 p = glm::floor( v );
+	glm::vec3  f = glm::fract( v );
+	
+	float res = 8.0;
+	for( int k=-1; k<=1; k++ ) {
+		for( int j=-1; j<=1; j++ ) {
+			for( int i=-1; i<=1; i++ ) {
+				glm::vec3 b = glm::vec3( i, j, k );
+				glm::vec3 r = glm::vec3( b ) - f + ( Simplex::noise( p + b ) * 0.5f + 0.5f );
+				float d = glm::dot( r, r );
+				res = glm::min( res, d );
+			}
+		}
+	}
+	return sqrt( res );
+}
+float sWorleyNoise( const glm::vec2 &v )
+{
+	glm::ivec2 p = glm::floor( v );
+	glm::vec2  f = glm::fract( v );
+	
+	float res = 8.0;
+	for( int j=-1; j<=1; j++ ) {
+		for( int i=-1; i<=1; i++ ) {
+			glm::ivec2 b = glm::ivec2( i, j );
+			glm::vec2  r = glm::vec2( b ) - f + ( Simplex::noise( p + b ) * 0.5f + 0.5f );
+			float d = dot( r, r );
+			res += 1.0f/glm::pow( d, 8.0f );
+		}
+	}
+	return glm::pow( 1.0f/res, 1.0/16.0f );
+}
+float sWorleyNoise( const glm::vec3 &v )
+{
+	glm::vec3 p = glm::floor( v );
+	glm::vec3  f = glm::fract( v );
+	
+	float res = 8.0;
+	for( int k=-1; k<=1; k++ ) {
+		for( int j=-1; j<=1; j++ ) {
+			for( int i=-1; i<=1; i++ ) {
+				glm::vec3 b = glm::vec3( i, j, k );
+				glm::vec3 r = glm::vec3( b ) - f + ( Simplex::noise( p + b ) * 0.5f + 0.5f );
+				float d = glm::dot( r, r );
+				res += 1.0f/glm::pow( d, 8.0f );
+			}
+		}
+	}
+	return glm::pow( 1.0f/res, 1.0f/16.0f );
+}
+	
 float flowNoise( const glm::vec2 &v, float angle )
 {
 	float n0, n1, n2; /* Noise contributions from the three simplex corners */
