@@ -117,6 +117,15 @@ float fBm( const glm::vec2 &v, uint8_t octaves = 4, float lacunarity = 2.0f, flo
 float fBm( const glm::vec3 &v, uint8_t octaves = 4, float lacunarity = 2.0f, float gain = 0.5f );
 //! Returns a 4D simplex noise fractal brownian motion sum
 float fBm( const glm::vec4 &v, uint8_t octaves = 4, float lacunarity = 2.0f, float gain = 0.5f );
+	
+//! Returns a 2D simplex cellular/worley noise fractal brownian motion sum
+float worleyfBm( const glm::vec2 &v, uint8_t octaves = 4, float lacunarity = 2.0f, float gain = 0.5f );
+//! Returns a 3D simplex cellular/worley noise fractal brownian motion sum
+float worleyfBm( const glm::vec3 &v, uint8_t octaves = 4, float lacunarity = 2.0f, float gain = 0.5f );
+//! Returns a 2D simplex smooth cellular/worley noise fractal brownian motion sum
+float worleyfBm( const glm::vec2 &v, float falloff, uint8_t octaves = 4, float lacunarity = 2.0f, float gain = 0.5f );
+//! Returns a 3D simplex smooth cellular/worley noise fractal brownian motion sum
+float worleyfBm( const glm::vec3 &v, float falloff, uint8_t octaves = 4, float lacunarity = 2.0f, float gain = 0.5f );
 
 //! Returns a 1D simplex noise fractal brownian motion sum with analytical derivatives
 glm::vec2 dfBm( float x, uint8_t octaves = 4, float lacunarity = 2.0f, float gain = 0.5f );
@@ -1262,13 +1271,13 @@ vec5 dnoise( const glm::vec4 &v )
 float worleyNoise( const glm::vec2 &v )
 {
 	glm::vec2 p = glm::floor( v );
-	glm::vec2  f = glm::fract( v );
+	glm::vec2 f = glm::fract( v );
 	
 	float res = 8.0;
 	for( int j=-1; j<=1; j++ ) {
 		for( int i=-1; i<=1; i++ ) {
 			glm::vec2 b = glm::vec2( i, j );
-			glm::vec2  r = glm::vec2( b ) - f + ( Simplex::noise( p + b ) * 0.5f + 0.5f );
+			glm::vec2  r = b - f + ( Simplex::noise( p + b ) * 0.5f + 0.5f );
 			float d = glm::dot( r, r );
 			res = glm::min( res, d );
 		}
@@ -1278,14 +1287,14 @@ float worleyNoise( const glm::vec2 &v )
 float worleyNoise( const glm::vec3 &v )
 {
 	glm::vec3 p = glm::floor( v );
-	glm::vec3  f = glm::fract( v );
+	glm::vec3 f = glm::fract( v );
 	
 	float res = 8.0;
 	for( int k=-1; k<=1; k++ ) {
 		for( int j=-1; j<=1; j++ ) {
 			for( int i=-1; i<=1; i++ ) {
 				glm::vec3 b = glm::vec3( i, j, k );
-				glm::vec3 r = glm::vec3( b ) - f + ( Simplex::noise( p + b ) * 0.5f + 0.5f );
+				glm::vec3 r = b - f + ( Simplex::noise( p + b ) * 0.5f + 0.5f );
 				float d = glm::dot( r, r );
 				res = glm::min( res, d );
 			}
@@ -1295,14 +1304,14 @@ float worleyNoise( const glm::vec3 &v )
 }
 float worleyNoise( const glm::vec2 &v, float falloff )
 {
-	glm::ivec2 p = glm::floor( v );
-	glm::vec2  f = glm::fract( v );
+	glm::vec2 p = glm::floor( v );
+	glm::vec2 f = glm::fract( v );
 	
 	float res = 0.0f;
 	for( int j=-1; j<=1; j++ ) {
 		for( int i=-1; i<=1; i++ ) {
-			glm::ivec2 b = glm::ivec2( i, j );
-			glm::vec2  r = glm::vec2( b ) - f + ( Simplex::noise( p + b ) * 0.5f + 0.5f );
+			glm::vec2 b = glm::vec2( i, j );
+			glm::vec2 r = b - f + ( Simplex::noise( p + b ) * 0.5f + 0.5f );
 			float d = glm::length( r );
 			res += glm::exp( -falloff*d );
 		}
@@ -1312,14 +1321,14 @@ float worleyNoise( const glm::vec2 &v, float falloff )
 float worleyNoise( const glm::vec3 &v, float falloff )
 {
 	glm::vec3 p = glm::floor( v );
-	glm::vec3  f = glm::fract( v );
+	glm::vec3 f = glm::fract( v );
 	
 	float res = 0.0f;
 	for( int k=-1; k<=1; k++ ) {
 		for( int j=-1; j<=1; j++ ) {
 			for( int i=-1; i<=1; i++ ) {
 				glm::vec3 b = glm::vec3( i, j, k );
-				glm::vec3 r = glm::vec3( b ) - f + ( Simplex::noise( p + b ) * 0.5f + 0.5f );
+				glm::vec3 r = b - f + ( Simplex::noise( p + b ) * 0.5f + 0.5f );
 				float d = glm::length( r );
 				res += glm::exp( -falloff*d );
 			}
@@ -1866,6 +1875,58 @@ float fBm( const glm::vec3 &v, uint8_t octaves, float lacunarity, float gain )
 float fBm( const glm::vec4 &v, uint8_t octaves, float lacunarity, float gain )
 {
 	return details::fBm_t( v, octaves, lacunarity, gain );
+}
+	
+namespace details {
+	template<typename T>
+	float worleyfBm_t( const T &input, uint8_t octaves, float lacunarity, float gain )
+	{
+		float sum   = 0.0f;
+		float freq  = 1.0f;
+		float amp   = 0.5f;
+		
+		for( uint8_t i = 0; i < octaves; i++ ){
+			float n     = worleyNoise( input * freq );
+			sum        += n*amp;
+			freq       *= lacunarity;
+			amp        *= gain;
+		}
+		
+		return sum;
+	}
+	template<typename T>
+	float worleyfBm_t( const T &input, float falloff, uint8_t octaves, float lacunarity, float gain )
+	{
+		float sum   = 0.0f;
+		float freq  = 1.0f;
+		float amp   = 0.5f;
+		
+		for( uint8_t i = 0; i < octaves; i++ ){
+			float n     = worleyNoise( input * freq, falloff );
+			sum        += n*amp;
+			freq       *= lacunarity;
+			amp        *= gain;
+		}
+		
+		return sum;
+	}
+}
+
+float worleyfBm( const glm::vec2 &v, uint8_t octaves, float lacunarity, float gain )
+{
+	return details::worleyfBm_t( v, octaves, lacunarity, gain );
+}
+float worleyfBm( const glm::vec3 &v, uint8_t octaves, float lacunarity, float gain )
+{
+	return details::worleyfBm_t( v, octaves, lacunarity, gain );
+}
+float worleyfBm( const glm::vec2 &v, float falloff, uint8_t octaves, float lacunarity, float gain )
+{
+	return details::worleyfBm_t( v, falloff, octaves, lacunarity, gain );
+}
+float worleyfBm( const glm::vec3 &v, float falloff, uint8_t octaves, float lacunarity, float gain )
+{
+	return details::worleyfBm_t( v, falloff, octaves, lacunarity, gain );
 }
 
 glm::vec2 dfBm( float x, uint8_t octaves, float lacunarity, float gain )
