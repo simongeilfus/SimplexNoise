@@ -27,6 +27,7 @@
 
 #include <functional>
 #include <array>
+#include <random>
 #include <math.h>
 #include <stdlib.h>
 #include <glm/detail/func_common.hpp>
@@ -153,7 +154,8 @@ float iqfBm( const glm::vec3 &v, uint8_t octaves = 4, float lacunarity = 2.0f, f
 //! Returns the 2D simplex noise fractal brownian motion sum variation by Iñigo Quilez that use a mat2 to transform each octave
 float iqMatfBm( const glm::vec2 &v, uint8_t octaves = 4, const glm::mat2 &mat = glm::mat2( 1.6, -1.2, 1.2, 1.6 ), float gain = 0.5f );
 
-	
+//! Seeds the permutation table with new random values
+void seed( uint32_t s );
 	
 // implementation
 	
@@ -2117,6 +2119,16 @@ float iqMatfBm( const glm::vec2 &v, uint8_t octaves, const glm::mat2 &mat, float
 		pos			= mat * pos;
 	}
 	return sum;
+}
+
+void seed( uint32_t s ) {
+    std::random_device rd;
+    std::mt19937 gen( rd() );
+    gen.seed( s );
+    std::uniform_int_distribution<> distribution( 1, 255 );
+    for( size_t i = 0; i < 256; ++i ) {
+        details::perm[i] = details::perm[i + 256] = distribution( gen );
+    }
 }
 	
 #undef FASTFLOOR
