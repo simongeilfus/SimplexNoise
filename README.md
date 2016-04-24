@@ -110,4 +110,7 @@ float iqfBm( const glm::vec3 &v, uint8_t octaves = 4, float lacunarity = 2.0f, f
 
 //! Returns the 2D simplex noise fractal brownian motion sum variation by Iñigo Quilez that use a mat2 to transform each octave
 float iqMatfBm( const glm::vec2 &v, uint8_t octaves = 4, const glm::mat2 &mat = glm::mat2( 1.6, -1.2, 1.2, 1.6 ), float gain = 0.5f );
+
+//! Seeds the permutation table with new random values
+void seed( uint32_t s );
 ```
