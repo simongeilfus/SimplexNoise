@@ -411,13 +411,13 @@ namespace details {
  * F2 = 0.5*(sqrt(3.0)-1.0)
  * G2 = (3.0-Math.sqrt(3.0))/6.0
  */
-#define F2 0.366025403
-#define G2 0.211324865
+#define F2 0.366025403f
+#define G2 0.211324865f
 /* Skewing factors for 3D simplex grid:
  * F3 = 1/3
  * G3 = 1/6 */
-#define F3 0.333333333
-#define G3 0.166666667
+#define F3 0.333333333f
+#define G3 0.166666667f
 
 // The skewing and unskewing factors are hairy again for the 4D case
 #define F4 0.309016994f // F4 = (Math.sqrt(5.0)-1.0)/4.0
@@ -2077,7 +2077,7 @@ float iqfBm( const glm::vec2 &v, uint8_t octaves, float lacunarity, float gain )
 		glm::vec3 d = dnoise( v * freq );
 		dx += d.y;
 		dy += d.y;
-		sum += amp * d.x / ( 1.0 + dx*dx + dy*dy );
+		sum += amp * d.x / ( 1.0f + dx*dx + dy*dy );
 		freq *= lacunarity;
 		amp *= gain;
 	}
@@ -2097,7 +2097,7 @@ float iqfBm( const glm::vec3 &v, uint8_t octaves, float lacunarity, float gain )
 		dx += d.y;
 		dy += d.y;
 		dz += d.z;
-		sum += amp * d.x / ( 1.0 + dx*dx + dy*dy + d.z*d.z );
+		sum += amp * d.x / ( 1.0f + dx*dx + dy*dy + d.z*d.z );
 		freq *= lacunarity;
 		amp *= gain;
 	}
@@ -2114,7 +2114,7 @@ float iqMatfBm( const glm::vec2 &v, uint8_t octaves, const glm::mat2 &mat, float
 	for( int i = 0; i < octaves; i++ ){
 		glm::vec3 n	= dnoise( pos );
 		noiseAccum	+= glm::vec2( n.y, n.z );
-		sum			+= amp * n.x / ( 1.0 + glm::dot( noiseAccum, noiseAccum ) );
+		sum			+= amp * n.x / ( 1.0f + glm::dot( noiseAccum, noiseAccum ) );
 		amp			*= gain;
 		pos			= mat * pos;
 	}
